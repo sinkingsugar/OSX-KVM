@@ -7,6 +7,9 @@ $ sudo /usr/bin/AssetCacheManagerUtil activate
 AssetCacheManagerUtil[] Failed to activate content caching: Error Domain=ACSMErrorDomain Code=5 "virtual machine"...
 ```
 
+It seems that the `Content Caching` functionality is not available when macOS
+is running in a virtual machine.
+
 
 ####  CPU flags
 
@@ -338,7 +341,7 @@ Target 0: (AssetCacheManagerService) stopped.
 * Manipulate function execution using Frida?
 
 
-#### Patch
+#### Patch #1
 
 ![Patching runningInVM method](screenshots/ida-patch.png?raw=true "Patching runningInVM()")
 
@@ -349,10 +352,97 @@ $ sudo /usr/bin/AssetCacheManagerUtil activate
 ... Failed to activate content caching: Error Domain=ACSMErrorDomain Code=3 "already activated"...
 ```
 
-However, `sudo /usr/bin/AssetCacheManagerUtil status` fails to works and just times out.
+However, `sudo /usr/bin/AssetCacheManagerUtil status` fails to work just yet.
 
-It seems more patching (probably of `AssetCacheTetheratorService` and other
-involved binaries) is required.
+```
+$ sudo /usr/bin/AssetCacheManagerUtil status
+2018-11-10 19:29:24.051 AssetCacheManagerUtil[419:3473] Content caching status: {
+    Activated = 0;
+    Active = 0;
+    CacheDetails =     {
+    };
+    CacheFree = 2000000000;
+    CacheLimit = 2000000000;
+    CacheStatus = OK;
+    CacheUsed = 0;
+    Parents =     (
+    );
+    Peers =     (
+    );
+    PersonalCacheFree = 2000000000;
+    PersonalCacheLimit = 2000000000;
+    PersonalCacheUsed = 0;
+    Port = 0;
+    RegistrationError = "NOT_ACTIVATED";
+    RegistrationResponseCode = 403;
+    RegistrationStatus = "-1";
+    RestrictedMedia = 0;
+    ServerGUID = "XXX";
+    StartupStatus = FAILED;
+    TotalBytesAreSince = "2018-11-11 03:27:25 +0000";
+    TotalBytesDropped = 0;
+    TotalBytesImported = 0;
+    TotalBytesReturnedToChildren = 0;
+    TotalBytesReturnedToClients = 0;
+    TotalBytesReturnedToPeers = 0;
+    TotalBytesStoredFromOrigin = 0;
+    TotalBytesStoredFromParents = 0;
+    TotalBytesStoredFromPeers = 0;
+}
+```
+
+It seems more patching of the involved binaries (`/usr/libexec/AssetCache/AssetCache`) is required?
+
+Note: The `AssetCacheManagerService.dif` included in this repository was
+derived on a macOS 10.14.1 system.
+
+
+#### Patch #2
+
+Change the four `VMM` strings to `XXX` in the `/usr/libexec/AssetCache/AssetCache` binary.
+
+```
+$ pwd
+/usr/libexec/AssetCache
+
+$ sudo codesign --remove-signature AssetCache
+
+$ sudo /usr/bin/AssetCacheManagerUtil status
+2018-11-10 23:40:07.459 AssetCacheManagerUtil[973:21653] Content caching status: {
+    Activated = 1;
+    Active = 0;
+    CacheDetails =     {
+    };
+    CacheFree = 2000000000;
+    CacheLimit = 2000000000;
+    CacheStatus = OK;
+    CacheUsed = 0;
+    Parents =     (
+    );
+    Peers =     (
+    );
+    PersonalCacheFree = 2000000000;
+    PersonalCacheLimit = 2000000000;
+    PersonalCacheUsed = 0;
+    Port = 49181;
+    RegistrationStarted = "2018-11-11 07:38:48 +0000";
+    RegistrationStatus = 0;
+    RestrictedMedia = 0;
+    ServerGUID = "XXX";
+    StartupStatus = PENDING;
+    TotalBytesAreSince = "2018-11-11 07:38:48 +0000";
+    TotalBytesDropped = 0;
+    TotalBytesImported = 0;
+    TotalBytesReturnedToChildren = 0;
+    TotalBytesReturnedToClients = 0;
+    TotalBytesReturnedToPeers = 0;
+    TotalBytesStoredFromOrigin = 0;
+    TotalBytesStoredFromParents = 0;
+    TotalBytesStoredFromPeers = 0;
+}
+```
+
+A bit of progress I think ;)
 
 
 #### Questions
