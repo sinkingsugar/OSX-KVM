@@ -19,17 +19,7 @@ taskset -c 0,1 nice -n 15 qemu-system-x86_64 -enable-kvm -m 6G -mem-prealloc -me
           -cpu Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,$MY_OPTIONS\
 	  -machine pc-q35-2.11 \
           -smp 2,sockets=1,cores=2,threads=1 \
-          -spice port=5900,addr=0.0.0.0,disable-ticketing \
-          -device ich9-usb-ehci1,id=usb \
-          -device ich9-usb-uhci1,masterbus=usb.0,firstport=0,multifunction=on \
-          -device ich9-usb-uhci2,masterbus=usb.0,firstport=2 \
-          -device ich9-usb-uhci3,masterbus=usb.0,firstport=4 \
-          -chardev spicevmc,name=usbredir,id=usbredirchardev1 \
-          -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1 \
-          -chardev spicevmc,name=usbredir,id=usbredirchardev2 \
-          -device usb-redir,chardev=usbredirchardev2,id=usbredirdev2 \
-          -chardev spicevmc,name=usbredir,id=usbredirchardev3 \
-          -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3 \
+          -vnc :0 \
 	  -usb -device usb-kbd -device usb-tablet \
 	  -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" \
 	  -drive if=pflash,format=raw,readonly,file=OVMF_CODE.fd \
@@ -39,7 +29,9 @@ taskset -c 0,1 nice -n 15 qemu-system-x86_64 -enable-kvm -m 6G -mem-prealloc -me
 	  -device ide-drive,bus=ide.2,drive=Clover \
 	  -drive id=Clover,if=none,snapshot=off,format=qcow2,file=./Clover.qcow2 \
 	  -device ide-drive,bus=ide.1,drive=MacHDD \
-	  -drive id=MacHDD,if=none,file=./macOSHS1.qcow2,format=qcow2 \
+	  -drive id=MacHDD,if=none,file=./osx_hdd.qcow2,format=qcow2 \
 	  -netdev bridge,br=br0,id=n1 -device e1000-82545em,netdev=n1,mac=ec:b1:d7:42:87:b9 \
 	  -monitor stdio
+
+#          -spice port=5900,addr=0.0.0.0,disable-ticketing \
 
