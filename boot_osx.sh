@@ -19,19 +19,20 @@ taskset -c 0,1 nice -n 15 qemu-system-x86_64 -enable-kvm -m 6G -mem-prealloc -me
           -cpu Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,$MY_OPTIONS\
 	  -machine pc-q35-2.11 \
           -smp 2,sockets=1,cores=2,threads=1 \
-          -vnc :0 \
-	  -usb -device usb-kbd -device usb-tablet \
+          -nographic -vga none \
+ 	  -usb -device usb-kbd -device usb-tablet \
 	  -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" \
 	  -drive if=pflash,format=raw,readonly,file=OVMF_CODE.fd \
 	  -drive if=pflash,format=raw,file=OVMF_VARS-1024x768.fd \
 	  -smbios type=2 \
 	  -device ich9-intel-hda -device hda-duplex \
 	  -device ide-drive,bus=ide.2,drive=Clover \
+	  -device vfio-pci,host=01:00.0,addr=09.0 \
 	  -drive id=Clover,if=none,snapshot=off,format=qcow2,file=./Clover.qcow2 \
 	  -device ide-drive,bus=ide.1,drive=MacHDD \
-	  -drive id=MacHDD,if=none,file=./osx_hdd.qcow2,format=qcow2 \
-	  -netdev bridge,br=br0,id=n1 -device e1000-82545em,netdev=n1,mac=ec:b1:d7:42:87:b9 \
-	  -monitor stdio
+	  -drive id=MacHDD,if=none,file=./macOSHS1.qcow2,format=qcow2 \
+	  -netdev bridge,br=br0,id=n1 -device e1000-82545em,netdev=n1,mac=ec:b1:d7:42:87:b9
+#	  -monitor stdio
 
-#          -spice port=5900,addr=0.0.0.0,disable-ticketing \
-
+#         -spice port=5900,addr=0.0.0.0,disable-ticketing \
+#	  -usb -device usb-host,hostbus=1,hostaddr=3 -device usb-host,hostbus=1,hostaddr=4 \
